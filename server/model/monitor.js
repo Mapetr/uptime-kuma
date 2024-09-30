@@ -1,30 +1,46 @@
 const dayjs = require("dayjs");
 const axios = require("axios");
-const { Prometheus } = require("../prometheus");
-const { log, UP, DOWN, PENDING, MAINTENANCE, flipStatus, MAX_INTERVAL_SECOND, MIN_INTERVAL_SECOND,
+const {Prometheus} = require("../prometheus");
+const {
+    log, UP, DOWN, PENDING, MAINTENANCE, flipStatus, MAX_INTERVAL_SECOND, MIN_INTERVAL_SECOND,
     SQL_DATETIME_FORMAT, evaluateJsonQuery
 } = require("../../src/util");
-const { tcping, ping, checkCertificate, checkStatusCode, getTotalClientInRoom, mssqlQuery, postgresQuery, mysqlQuery, httpNtlm, radius, grpcQuery,
-    redisPingAsync, kafkaProducerAsync, getOidcTokenClientCredentials, rootCertificatesFingerprints, axiosAbortSignal
+const {
+    tcping,
+    ping,
+    checkCertificate,
+    checkStatusCode,
+    getTotalClientInRoom,
+    mssqlQuery,
+    postgresQuery,
+    mysqlQuery,
+    httpNtlm,
+    radius,
+    grpcQuery,
+    redisPingAsync,
+    kafkaProducerAsync,
+    getOidcTokenClientCredentials,
+    rootCertificatesFingerprints,
+    axiosAbortSignal
 } = require("../util-server");
-const { R } = require("redbean-node");
-const { BeanModel } = require("redbean-node/dist/bean-model");
-const { Notification } = require("../notification");
-const { Proxy } = require("../proxy");
-const { demoMode } = require("../config");
+const {R} = require("redbean-node");
+const {BeanModel} = require("redbean-node/dist/bean-model");
+const {Notification} = require("../notification");
+const {Proxy} = require("../proxy");
+const {demoMode} = require("../config");
 const version = require("../../package.json").version;
 const apicache = require("../modules/apicache");
-const { UptimeKumaServer } = require("../uptime-kuma-server");
-const { DockerHost } = require("../docker");
+const {UptimeKumaServer} = require("../uptime-kuma-server");
+const {DockerHost} = require("../docker");
 const Gamedig = require("gamedig");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { UptimeCalculator } = require("../uptime-calculator");
-const { CookieJar } = require("tough-cookie");
-const { HttpsCookieAgent } = require("http-cookie-agent/http");
+const {UptimeCalculator} = require("../uptime-calculator");
+const {CookieJar} = require("tough-cookie");
+const {HttpsCookieAgent} = require("http-cookie-agent/http");
 const https = require("https");
 const http = require("http");
-const { Settings } = require("../settings");
+const {Settings} = require("../settings");
 
 const rootCertificates = rootCertificatesFingerprints();
 
@@ -62,7 +78,7 @@ class Monitor extends BeanModel {
         }
 
         if (certExpiry && (this.type === "http" || this.type === "keyword" || this.type === "json-query") && this.getURLProtocol() === "https:") {
-            const { certExpiryDaysRemaining, validCert } = await this.getCertExpiry(this.id);
+            const {certExpiryDaysRemaining, validCert} = await this.getCertExpiry(this.id);
             obj.certExpiryDaysRemaining = certExpiryDaysRemaining;
             obj.validCert = validCert;
         }
@@ -218,7 +234,7 @@ class Monitor extends BeanModel {
      * monitor
      */
     async getTags() {
-        return await R.getAll("SELECT mt.*, tag.name, tag.color FROM monitor_tag mt JOIN tag ON mt.tag_id = tag.id WHERE mt.monitor_id = ? ORDER BY tag.name", [ this.id ]);
+        return await R.getAll("SELECT mt.*, tag.name, tag.color FROM monitor_tag mt JOIN tag ON mt.tag_id = tag.id WHERE mt.monitor_id = ? ORDER BY tag.name", [this.id]);
     }
 
     /**
@@ -353,7 +369,7 @@ class Monitor extends BeanModel {
 
             let beatInterval = this.interval;
 
-            if (! beatInterval) {
+            if (!beatInterval) {
                 beatInterval = 1;
             }
 
@@ -495,7 +511,7 @@ class Monitor extends BeanModel {
                         timeout: this.timeout * 1000,
                         headers: {
                             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-                            ...(contentType ? { "Content-Type": contentType } : {}),
+                            ...(contentType ? {"Content-Type": contentType} : {}),
                             ...(basicAuthHeader),
                             ...(oauth2AuthHeader),
                             ...(this.headers ? JSON.parse(this.headers) : {})
@@ -523,7 +539,7 @@ class Monitor extends BeanModel {
                         const proxy = await R.load("proxy", this.proxy_id);
 
                         if (proxy && proxy.active) {
-                            const { httpAgent, httpsAgent } = Proxy.createAgents(proxy, {
+                            const {httpAgent, httpsAgent} = Proxy.createAgents(proxy, {
                                 httpsAgentOptions: httpsAgentOptions,
                             });
 
@@ -537,7 +553,7 @@ class Monitor extends BeanModel {
                         let jar = new CookieJar();
                         let httpsCookieAgentOptions = {
                             ...httpsAgentOptions,
-                            cookies: { jar }
+                            cookies: {jar}
                         };
                         options.httpsAgent = new HttpsCookieAgent(httpsCookieAgentOptions);
                     }
@@ -619,7 +635,10 @@ class Monitor extends BeanModel {
                     } else if (this.type === "json-query") {
                         let data = res.data;
 
-                        const { status, response } = await evaluateJsonQuery(data, this.jsonPath, this.jsonPathOperator, this.expectedValue);
+                        const {
+                            status,
+                            response
+                        } = await evaluateJsonQuery(data, this.jsonPath, this.jsonPathOperator, this.expectedValue);
 
                         if (status) {
                             bean.status = UP;
@@ -709,7 +728,8 @@ class Monitor extends BeanModel {
 
                         try {
                             bean.ping = await ping(this.hostname, this.packetSize);
-                        } catch (_) { }
+                        } catch (_) {
+                        }
                     } else {
                         throw new Error("Server not found on Steam");
                     }
@@ -1003,7 +1023,7 @@ class Monitor extends BeanModel {
 
             previousBeat = bean;
 
-            if (! this.isStop) {
+            if (!this.isStop) {
                 log.debug("monitor", `[${this.name}] SetTimeout for next check.`);
 
                 let intervalRemainingMs = Math.max(
@@ -1032,7 +1052,7 @@ class Monitor extends BeanModel {
                 UptimeKumaServer.errorLog(e, false);
                 log.error("monitor", "Please report to https://github.com/louislam/uptime-kuma/issues");
 
-                if (! this.isStop) {
+                if (!this.isStop) {
                     log.info("monitor", "Try to restart the monitor");
                     this.heartbeatInterval = setTimeout(safeBeat, this.interval * 1000);
                 }
@@ -1084,7 +1104,8 @@ class Monitor extends BeanModel {
                 let oauth2AuthHeader = {
                     "Authorization": this.oauthAccessToken.token_type + " " + this.oauthAccessToken.access_token,
                 };
-                options.headers = { ...(options.headers),
+                options.headers = {
+                    ...(options.headers),
                     ...(oauth2AuthHeader)
                 };
 
@@ -1187,7 +1208,8 @@ class Monitor extends BeanModel {
                 } else {
                     log.debug("monitor", "Not valid object");
                 }
-            } catch (e) { }
+            } catch (e) {
+            }
 
         }
 
@@ -1374,7 +1396,7 @@ class Monitor extends BeanModel {
         if (tlsInfoObject && tlsInfoObject.certInfo && tlsInfoObject.certInfo.daysRemaining) {
             const notificationList = await Monitor.getNotificationList(this);
 
-            if (! notificationList.length > 0) {
+            if (!notificationList.length > 0) {
                 // fail fast. If no notification is set, all the following checks can be skipped.
                 log.debug("monitor", "No notification, no need to send cert notification");
                 return;
@@ -1383,8 +1405,8 @@ class Monitor extends BeanModel {
             let notifyDays = await Settings.get("tlsExpiryNotifyDays");
             if (notifyDays == null || !Array.isArray(notifyDays)) {
                 // Reset Default
-                await Settings.set("tlsExpiryNotifyDays", [ 7, 14, 21 ], "general");
-                notifyDays = [ 7, 14, 21 ];
+                await Settings.set("tlsExpiryNotifyDays", [7, 14, 21], "general");
+                notifyDays = [7, 14, 21];
                 await Settings.set("tlsExpiryNotifyDays", notifyDays, "general");
             }
 
@@ -1476,7 +1498,7 @@ class Monitor extends BeanModel {
         const maintenanceIDList = await R.getCol(`
             SELECT maintenance_id FROM monitor_maintenance
             WHERE monitor_id = ?
-        `, [ monitorID ]);
+        `, [monitorID]);
 
         for (const maintenanceID of maintenanceIDList) {
             const maintenance = await UptimeKumaServer.getInstance().getMaintenance(maintenanceID);
@@ -1542,7 +1564,7 @@ class Monitor extends BeanModel {
      * @returns {Promise<string[]>} Full path (includes groups and the name) of the monitor
      */
     async getPath() {
-        const path = [ this.name ];
+        const path = [this.name];
 
         if (this.parent === null) {
             return path;

@@ -1,6 +1,8 @@
 const NotificationProvider = require("./notification-provider");
 const axios = require("axios");
 const {DOWN, UP} = require("../../src/util");
+const {UptimeDuration} = require("../utils/uptime-duration");
+const dayjs = require("dayjs");
 
 class Discord extends NotificationProvider {
     name = "discord";
@@ -33,6 +35,8 @@ class Discord extends NotificationProvider {
                 return okMsg;
             }
 
+            const duration = await UptimeDuration.getLastUptime(heartbeatJSON["monitorID"], heartbeatJSON["status"]);
+
             // If heartbeatJSON is not null, we go into the normal alerting loop.
             if (heartbeatJSON["status"] === DOWN) {
                 let discorddowndata = {
@@ -49,6 +53,10 @@ class Discord extends NotificationProvider {
                             {
                                 name: monitorJSON["type"] === "push" ? "Service Type" : "Service URL",
                                 value: this.extractAdress(monitorJSON),
+                            },
+                            {
+                                name: "Up for",
+                                value: duration
                             },
                             {
                                 name: "Error",
@@ -84,6 +92,10 @@ class Discord extends NotificationProvider {
                                 value: this.extractAdress(monitorJSON),
                             },
                             {
+                                name: "Down for",
+                                value: duration
+                            },
+                            {
                                 name: "Ping",
                                 value: heartbeatJSON["ping"] == null ? "N/A" : heartbeatJSON["ping"] + " ms",
                             },
@@ -106,6 +118,7 @@ class Discord extends NotificationProvider {
             this.throwGeneralAxiosError(error);
         }
     }
+
 }
 
 module.exports = Discord;

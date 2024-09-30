@@ -1,5 +1,5 @@
-const { R } = require("redbean-node");
-const { log } = require("../src/util");
+const {R} = require("redbean-node");
+const {log} = require("../src/util");
 const Alerta = require("./notification-providers/alerta");
 const AlertNow = require("./notification-providers/alertnow");
 const AliyunSms = require("./notification-providers/aliyun-sms");
@@ -153,7 +153,7 @@ class Notification {
             new Wpush(),
         ];
         for (let item of list) {
-            if (! item.name) {
+            if (!item.name) {
                 throw new Error("Notification provider without name");
             }
 
@@ -197,7 +197,7 @@ class Notification {
                 userID,
             ]);
 
-            if (! bean) {
+            if (!bean) {
                 throw new Error("notification not found");
             }
 
@@ -230,7 +230,7 @@ class Notification {
             userID,
         ]);
 
-        if (! bean) {
+        if (!bean) {
             throw new Error("notification not found");
         }
 
@@ -266,7 +266,7 @@ async function applyNotificationEveryMonitor(notificationID, userID) {
             notificationID,
         ]);
 
-        if (! checkNotification) {
+        if (!checkNotification) {
             let relation = R.dispense("monitor_notification");
             relation.monitor_id = monitors[i].id;
             relation.notification_id = notificationID;
