@@ -1,6 +1,6 @@
 const NotificationProvider = require("./notification-provider");
 const axios = require("axios");
-const { DOWN, UP } = require("../../src/util");
+const {DOWN, UP} = require("../../src/util");
 
 class Discord extends NotificationProvider {
     name = "discord";
@@ -38,7 +38,7 @@ class Discord extends NotificationProvider {
                 let discorddowndata = {
                     username: discordDisplayName,
                     embeds: [{
-                        title: "❌ Your service " + monitorJSON["name"] + " went down. ❌",
+                        title: "❌ Service " + monitorJSON["name"] + " went down. ❌",
                         color: 16711680,
                         timestamp: heartbeatJSON["time"],
                         fields: [
@@ -49,10 +49,6 @@ class Discord extends NotificationProvider {
                             {
                                 name: monitorJSON["type"] === "push" ? "Service Type" : "Service URL",
                                 value: this.extractAdress(monitorJSON),
-                            },
-                            {
-                                name: `Time (${heartbeatJSON["timezone"]})`,
-                                value: heartbeatJSON["localDateTime"],
                             },
                             {
                                 name: "Error",
@@ -75,7 +71,7 @@ class Discord extends NotificationProvider {
                 let discordupdata = {
                     username: discordDisplayName,
                     embeds: [{
-                        title: "✅ Your service " + monitorJSON["name"] + " is up! ✅",
+                        title: "✅ Service " + monitorJSON["name"] + " is up! ✅",
                         color: 65280,
                         timestamp: heartbeatJSON["time"],
                         fields: [
@@ -86,10 +82,6 @@ class Discord extends NotificationProvider {
                             {
                                 name: monitorJSON["type"] === "push" ? "Service Type" : "Service URL",
                                 value: this.extractAdress(monitorJSON),
-                            },
-                            {
-                                name: `Time (${heartbeatJSON["timezone"]})`,
-                                value: heartbeatJSON["localDateTime"],
                             },
                             {
                                 name: "Ping",
@@ -114,7 +106,6 @@ class Discord extends NotificationProvider {
             this.throwGeneralAxiosError(error);
         }
     }
-
 }
 
 module.exports = Discord;
